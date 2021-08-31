@@ -1,0 +1,7 @@
+/*!
+ * \defgroup block GNU Radio BER_ESTIMATOR C++ Signal Processing Blocks
+ * \brief All C++ blocks that can be used from the BER_ESTIMATOR GNU Radio
+ *        module are listed here or in the subcategories below.
+ *
+ */
+
