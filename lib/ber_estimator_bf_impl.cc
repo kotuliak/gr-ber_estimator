@@ -24,13 +24,39 @@ namespace gr {
     boost::dynamic_bitset<> concatenate(const boost::dynamic_bitset<>& first, const boost::dynamic_bitset<>& second)
     {
       boost::dynamic_bitset<> value(first);
-
       //Increase the size of the bit buffer to fit the data being placed in it
       value.resize(first.size() + second.size());
       value <<= second.size();
-      value |= second;
+      int length = first.size() + second.size();
+      value[0] = second[0];
+      value[1] = second[1];
+      value[2] = second[2];
+      value[3] = second[3];
+      value[4] = second[4];
+      value[5] = second[5];
+      value[6] = second[6];
+      value[7] = second[7];
+      // value |= second;
       return value;
-  }
+    }
+
+    boost::dynamic_bitset<> concatenate2(const boost::dynamic_bitset<>& first, const boost::dynamic_bitset<>& second)
+    {
+      boost::dynamic_bitset<> value(first);
+      //Increase the size of the bit buffer to fit the data being placed in it
+      value.resize(first.size() + second.size());
+      value <<= second.size();
+      value[0] = second[0];
+      value[1] = second[1];
+      value[2] = second[2];
+      value[3] = second[3];
+      value[4] = second[4];
+      value[5] = second[5];
+      value[6] = second[6];
+      value[7] = second[7];
+      return value;
+    }
+
 
 
 
@@ -42,11 +68,20 @@ namespace gr {
               gr::io_signature::make(1 /* min inputs */, 1 /* max inputs */, sizeof(input_type)),
               gr::io_signature::make(1 /* min outputs */, 1 /*max outputs */, sizeof(output_type)))
     {
+
+      boost::dynamic_bitset<> byte1(128, 0);
+      boost::dynamic_bitset<> byte2(8, 255);
+
+      std::cout << (byte1 |= byte2) << "\n";
+
       for (size_t i = 0; i < symbol_.size(); i++)
       {
         boost::dynamic_bitset<> byte(8, symbol_[i]);
+        
         symbol = concatenate(symbol, byte);
       }
+      // std::cout << std::endl;
+      std::cout << symbol << std::endl;
     }
 
     /*
@@ -79,12 +114,12 @@ namespace gr {
         for (size_t i = 0; i < symbol.size() / 8; i++)
         {
           boost::dynamic_bitset<> byte(8, in[j * (symbol.size() / 8) + i]);
-          received_symbol = concatenate(received_symbol, byte);
+          received_symbol = concatenate2(received_symbol, byte);
         }
 
-        if (counter < 100) {
-          std::cout << received_symbol << std::endl;  
-        }
+        // if (counter % 1000) {
+        //   std::cout << received_symbol << std::endl;  
+        // }
         counter++;
 
         float min = symbol.size();
