@@ -27,37 +27,12 @@ namespace gr {
       //Increase the size of the bit buffer to fit the data being placed in it
       value.resize(first.size() + second.size());
       value <<= second.size();
-      int length = first.size() + second.size();
-      value[0] = second[0];
-      value[1] = second[1];
-      value[2] = second[2];
-      value[3] = second[3];
-      value[4] = second[4];
-      value[5] = second[5];
-      value[6] = second[6];
-      value[7] = second[7];
-      // value |= second;
+      for (size_t i = 0; i < second.size(); i++)
+      {
+        value[i] = second[i];
+      }
       return value;
     }
-
-    boost::dynamic_bitset<> concatenate2(const boost::dynamic_bitset<>& first, const boost::dynamic_bitset<>& second)
-    {
-      boost::dynamic_bitset<> value(first);
-      //Increase the size of the bit buffer to fit the data being placed in it
-      value.resize(first.size() + second.size());
-      value <<= second.size();
-      value[0] = second[0];
-      value[1] = second[1];
-      value[2] = second[2];
-      value[3] = second[3];
-      value[4] = second[4];
-      value[5] = second[5];
-      value[6] = second[6];
-      value[7] = second[7];
-      return value;
-    }
-
-
 
 
     /*
@@ -68,12 +43,6 @@ namespace gr {
               gr::io_signature::make(1 /* min inputs */, 1 /* max inputs */, sizeof(input_type)),
               gr::io_signature::make(1 /* min outputs */, 1 /*max outputs */, sizeof(output_type)))
     {
-
-      boost::dynamic_bitset<> byte1(128, 0);
-      boost::dynamic_bitset<> byte2(8, 255);
-
-      std::cout << (byte1 |= byte2) << "\n";
-
       for (size_t i = 0; i < symbol_.size(); i++)
       {
         boost::dynamic_bitset<> byte(8, symbol_[i]);
@@ -95,7 +64,7 @@ namespace gr {
     void
     ber_estimator_bf_impl::forecast (int noutput_items, gr_vector_int &ninput_items_required)
     { 
-      ninput_items_required[0] = noutput_items * (symbol.size() / 8);
+      ninput_items_required[0] = noutput_items * symbol.size();
     }
 
     int
@@ -107,37 +76,69 @@ namespace gr {
       const input_type *in = reinterpret_cast<const input_type*>(input_items[0]);
       output_type *out = reinterpret_cast<output_type*>(output_items[0]);
 
+      int min_ind = 0;
+
       for (size_t j = 0; j < noutput_items; j++) {
 
         boost::dynamic_bitset<> received_symbol;
 
-        for (size_t i = 0; i < symbol.size() / 8; i++)
+        
+
+        for (size_t i = 0; i < symbol.size(); i++)
         {
-          boost::dynamic_bitset<> byte(8, in[j * (symbol.size() / 8) + i]);
-          received_symbol = concatenate2(received_symbol, byte);
+          boost::dynamic_bitset<> byte(1, in[j * (symbol.size()) + i + min_ind]);
+          received_symbol = concatenate(received_symbol, byte);
         }
 
-        // if (counter % 1000) {
-        //   std::cout << received_symbol << std::endl;  
-        // }
+        if (counter % 1000 == 0) {
+          std::cout << received_symbol << std::endl;  
+        }
         counter++;
 
-        float min = symbol.size();
-        for (size_t k = 0; k < symbol.size(); k++) {
+        if (delay_zero_count < 10) {
+
+          float min = symbol.size();
+          int min_ind_can = 0;
+
+          for (size_t k = 0; k < symbol.size(); k++) {
+            float min_cand = (float) (symbol ^ received_symbol).count();
+            if (min_cand < min) {
+              min_ind_can = k;
+              min = min_cand;
+            }
+            bool left = received_symbol[symbol.size() - 1];
+            received_symbol = received_symbol << 1;
+            received_symbol[0] = left;
+          }
+
+          min_ind += min_ind_can;
+          out[j] = min / (float) symbol.size();
+
+          if (min_ind_can != 0) {
+            
+            std::cout << min_ind << " " << delay_zero_count << std::endl;
+            delay_zero_count = 0;
+          } else {
+            delay_zero_count++;
+          }
+
+        } else {
+          
+          min_ind += 0;
           float min_cand = (float) (symbol ^ received_symbol).count();
-          if (min_cand < min) min = min_cand;
-          bool left = received_symbol[symbol.size() - 1];
-          received_symbol = received_symbol << 1;
-          received_symbol[0] = left;
-        }
-        out[j] = min / (float) symbol.size();
+          out[j] = min_cand / (float) symbol.size();
+          std::cout << "went through initial period! " << out[j] << std::endl;
+        } 
 
         // std::cout << out[j] << std::endl;
+        // std::cout << (received_symbol) << " " << noutput_items << "\n";
       }
 
-      consume_each (noutput_items * (symbol.size() / 8));
+      consume_each (noutput_items * (symbol.size()) + min_ind);
 
       // Tell runtime system how many output items we produced.
+
+      
       return noutput_items;
     }
 

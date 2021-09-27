@@ -19,6 +19,7 @@ namespace gr {
      private:
      boost::dynamic_bitset<> symbol;
      int counter = 0;
+     int delay_zero_count = 0;
 
      public:
       ber_estimator_bf_impl(gr_vector_int &symbol_);
