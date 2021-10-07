@@ -21,9 +21,10 @@ namespace gr {
      int counter = 0;
      int delay_zero_count = 0;
      float smoothed_ber = 0;
+     int report_period;
 
      public:
-      ber_estimator_bf_impl(gr_vector_int &symbol_);
+      ber_estimator_bf_impl(gr_vector_int &symbol_, int report_period_);
       ~ber_estimator_bf_impl();
 
       // Where all the action really happens

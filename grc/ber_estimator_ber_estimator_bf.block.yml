@@ -4,7 +4,7 @@ category: '[ber_estimator]'
 
 templates:
   imports: import ber_estimator
-  make: ber_estimator.ber_estimator_bf(${symbol})
+  make: ber_estimator.ber_estimator_bf(${symbol}, ${report_period})
 
 #  Make one 'parameters' list entry for every parameter you want settable from the GUI.
 #     Keys include:
@@ -15,6 +15,10 @@ parameters:
 - id: symbol
   label: Symbol
   dtype: int_vector
+- id: report_period
+  label: Reporting Period
+  dtype: int
+  default: '1'
 #- id: ...
 #  label: ...
 #  dtype: ...

@@ -32,7 +32,7 @@ namespace gr {
        * class. ber_estimator::ber_estimator_bf::make is the public interface for
        * creating new instances.
        */
-      static sptr make(gr_vector_int &symbol_);
+      static sptr make(gr_vector_int &symbol_, int report_period_);
     };
 
   } // namespace ber_estimator

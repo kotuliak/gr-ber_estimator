@@ -14,9 +14,9 @@ namespace gr {
     using input_type = uint8_t;
     using output_type = float;
     ber_estimator_bf::sptr
-    ber_estimator_bf::make(gr_vector_int &symbol_)
+    ber_estimator_bf::make(gr_vector_int &symbol_, int report_period_)
     {
-      return gnuradio::make_block_sptr<ber_estimator_bf_impl>(symbol_);
+      return gnuradio::make_block_sptr<ber_estimator_bf_impl>(symbol_, report_period_);
     }
 
     boost::dynamic_bitset<> concatenate(const boost::dynamic_bitset<>& first, const boost::dynamic_bitset<>& second)
@@ -36,17 +36,22 @@ namespace gr {
     /*
      * The private constructor
      */
-    ber_estimator_bf_impl::ber_estimator_bf_impl(gr_vector_int &symbol_)
+    ber_estimator_bf_impl::ber_estimator_bf_impl(gr_vector_int &symbol_, int report_period_)
       : gr::block("ber_estimator_bf",
               gr::io_signature::make(1 /* min inputs */, 1 /* max inputs */, sizeof(input_type)),
               gr::io_signature::make(1 /* min outputs */, 1 /*max outputs */, sizeof(output_type)))
     {
+      report_period = report_period_;
       for (size_t i = 0; i < symbol_.size(); i++)
       {
         boost::dynamic_bitset<> byte(8, symbol_[i]);
         
         symbol = concatenate(symbol, byte);
       }
+
+      std::cout << std::fixed;
+      std::cout << std::setprecision(5);
+
     }
 
     /*
@@ -71,12 +76,13 @@ namespace gr {
       output_type *out = reinterpret_cast<output_type*>(output_items[0]);
 
       int min_ind = 0;
+      float cummulative_ber = 0;
 
       for (size_t j = 0; j < noutput_items; j++) {
 
         boost::dynamic_bitset<> received_symbol;
 
-        
+        counter++;
 
         for (size_t i = 0; i < symbol.size(); i++)
         {
@@ -111,11 +117,15 @@ namespace gr {
 
         } else {
           
-          min_ind += 0;
           float min_cand = (float) (symbol ^ received_symbol).count();
           out[j] = min_cand / (float) symbol.size();
+          cummulative_ber += out[j];
           smoothed_ber = 0.9 * smoothed_ber + 0.1 * out[j];
-          std::cout << "Current BER: " << out[j] << ", smoothed BER: " << smoothed_ber << std::endl;
+
+          if (counter % report_period == 0) {
+            std::cout << "BER in last " << report_period << " estimations: " << out[j] << ", exponential moving avergae of BER: " << smoothed_ber << std::endl;
+            cummulative_ber = 0;
+          }
         } 
       }
 

@@ -14,7 +14,7 @@
 /* BINDTOOL_GEN_AUTOMATIC(0)                                                       */
 /* BINDTOOL_USE_PYGCCXML(0)                                                        */
 /* BINDTOOL_HEADER_FILE(ber_estimator_bf.h)                                        */
-/* BINDTOOL_HEADER_FILE_HASH(c6535dde56b21af6da1e155700d210e4)                     */
+/* BINDTOOL_HEADER_FILE_HASH(afba497dca08b30f1b724b313cf8c522)                     */
 /***********************************************************************************/
 
 #include <pybind11/complex.h>
@@ -38,6 +38,7 @@ void bind_ber_estimator_bf(py::module& m)
 
         .def(py::init(&ber_estimator_bf::make),
            py::arg("symbol_"),
+           py::arg("report_period_"),
            D(ber_estimator_bf,make)
         )
         
