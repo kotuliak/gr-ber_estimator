@@ -76,7 +76,6 @@ namespace gr {
       output_type *out = reinterpret_cast<output_type*>(output_items[0]);
 
       int min_ind = 0;
-      float cummulative_ber = 0;
 
       for (size_t j = 0; j < noutput_items; j++) {
 
@@ -123,7 +122,29 @@ namespace gr {
           smoothed_ber = 0.9 * smoothed_ber + 0.1 * out[j];
 
           if (counter % report_period == 0) {
-            std::cout << "BER in last " << report_period << " estimations: " << out[j] << ", exponential moving avergae of BER: " << smoothed_ber << std::endl;
+            std::cout << "BER in last " << report_period << " estimations: " << cummulative_ber / report_period << ", exponential moving avergae of BER: " << smoothed_ber << std::endl;
+            
+            if (cummulative_ber > 0.25) {
+              float min = symbol.size();
+              int min_ind_can = 0;
+
+              for (size_t k = 0; k < symbol.size(); k++) {
+                float min_cand = (float) (symbol ^ received_symbol).count();
+                if (min_cand < min) {
+                  min_ind_can = k;
+                  min = min_cand;
+                }
+                bool left = received_symbol[symbol.size() - 1];
+                received_symbol = received_symbol << 1;
+                received_symbol[0] = left;
+              }
+
+              if (min < 0.05) {
+                min_ind = min_ind_can;
+              }
+
+            }
+            
             cummulative_ber = 0;
           }
         } 

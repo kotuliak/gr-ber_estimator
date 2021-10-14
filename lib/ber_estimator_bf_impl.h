@@ -22,6 +22,7 @@ namespace gr {
      int delay_zero_count = 0;
      float smoothed_ber = 0;
      int report_period;
+     float cummulative_ber = 0;
 
      public:
       ber_estimator_bf_impl(gr_vector_int &symbol_, int report_period_);
