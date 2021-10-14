@@ -90,7 +90,7 @@ namespace gr {
           received_symbol = concatenate(received_symbol, byte);
         }
 
-        if (delay_zero_count < 10) {
+        if (delay_zero_count < 100) {
 
           float min = symbol.size();
           int min_ind_can = 0;
@@ -109,7 +109,7 @@ namespace gr {
           min_ind += min_ind_can;
           out[j] = min / (float) symbol.size();
 
-          if (min_ind_can != 0) {
+          if (min_ind != 0 || min > 0.3) {
             delay_zero_count = 0;
           } else {
             delay_zero_count++;
