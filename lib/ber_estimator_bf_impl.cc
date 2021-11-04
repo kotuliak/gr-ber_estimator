@@ -5,8 +5,10 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+
 #include <gnuradio/io_signature.h>
 #include "ber_estimator_bf_impl.h"
+#include <ctime>
 
 namespace gr {
   namespace ber_estimator {
@@ -96,6 +98,7 @@ namespace gr {
 
           for (size_t k = 0; k < symbol.size(); k++) {
             float min_cand = (float) (symbol ^ received_symbol).count();
+            min_cand = std::min(min_cand, symbol.size()-min_cand);
             if (min_cand < min) {
               min_ind_can = k;
               min = min_cand;
@@ -117,12 +120,14 @@ namespace gr {
         } else {
           
           float min_cand = (float) (symbol ^ received_symbol).count();
+          min_cand = std::min(min_cand, symbol.size()-min_cand);
           out[j] = min_cand / (float) symbol.size();
           cummulative_ber += out[j];
           smoothed_ber = 0.9 * smoothed_ber + 0.1 * out[j];
 
           if (counter % report_period == 0) {
-            std::cout << "BER in last " << report_period << " estimations: " << cummulative_ber / report_period << ", exponential moving avergae of BER: " << smoothed_ber << std::endl;
+            std::time_t result = std::time(nullptr);
+            std::cout << "BER in last " << report_period << " estimations: " << cummulative_ber / report_period << ", exponential moving avergae of BER: " << smoothed_ber << " time: " << std::asctime(std::localtime(&result)) << std::endl;
             
             if (cummulative_ber > 0.25) {
               float min = symbol.size();
@@ -130,6 +135,7 @@ namespace gr {
 
               for (size_t k = 0; k < symbol.size(); k++) {
                 float min_cand = (float) (symbol ^ received_symbol).count();
+                min_cand = std::min(min_cand, symbol.size()-min_cand);
                 if (min_cand < min) {
                   min_ind_can = k;
                   min = min_cand;
